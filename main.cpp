@@ -1,7 +1,5 @@
 // TODO: sort the course info interms of term year (fall 2024 - winter 2025 etc.) also highest to lowest gpa 
-// TODO: add sortAlphabetical() method
-// TODO: add sortGpa() method
-// TODO: add sortCredit() method
+// TODO: Fix formatting
 #include "mycourse.h"
 
 #include <iostream>
@@ -25,9 +23,14 @@ float CalculateGpa(MyCourse list[]);
 float ConvertToGradePoints(string letter_grade);
 void SaveAssignments(int number_of_assignments);
 void SaveToFile();
-void PrintSummary();
+void PrintSummary(char summary_type);
 void FindEmptyIndex(string name, string grades, int credits, string term);
 bool IsCourseExist(string course_name);
+void FileToArray();
+char SummaryOptions();
+void Sort(MyCourse array[], char type);
+void MergeSort(MyCourse array[], int begin, int end, char type);
+void Merge(MyCourse array[], int begin, int mid, int end, char type);
 
 // storing name, grade, credits and term information
 MyCourse course;
@@ -52,6 +55,20 @@ Assignment * assignment_list;
 
 // for storing founded course;
 MyCourse find_course;
+
+// template for merge sort 3(4) different data types: string gpa, int credits, string name
+// technically gpa and name are char type
+// input MyCourse type array, subarray size int left and right, int begin, any type value_right and left
+template <typename Any>
+void CompareMerge(MyCourse array[], std::vector<MyCourse> array_left, std::vector<MyCourse> array_right, Any value_left, Any value_right, int& i_left, int& i_right, int& i_array) {
+	if (value_left < value_right) {
+		array[i_array] = array_left[i_left];
+		i_left++;	
+	} else {
+		array[i_array] = array_right[i_right];
+		i_right++;
+	}
+}
 
 int main() {
 	int N_courses; 
@@ -110,8 +127,11 @@ int main() {
 
 			delete[] assignment_list; // free memory
 		} else if (choice == 'c') {
+
+			char summary_option = SummaryOptions();
+
 			cout << setfill('/') << setw(31) << "/\n" << endl;
-			PrintSummary();
+			PrintSummary(summary_option);
 			cout << setfill('/') << setw(31) << "/\n" << endl;
 			cout << "\n * Done *" << endl;
 		} else if (choice == 'a') {
@@ -165,6 +185,23 @@ char PromptOptions() {
 	return option;
 }
 
+char SummaryOptions() {
+	char option;
+
+	// GUI mainly for the look
+	cout << "\t" << setfill('-') << setw(31) << "-" << endl;
+	cout << "\t|" << setfill(' ') << setw(4) << " " << "CHOOSE A SORTING TYPE" << setw(7) 
+		<< "|\t\n" << "\t|" << setw(30) << "|" <<
+		"\n\t|  GPA [z] Name[x] CREDITS[c]" << " |\n" <<
+		"\t|" << setw(31) << " |\n" << "\t|" << setw(10) << " " << "TERM [a]" << setw(12) << "|" << endl;  
+	cout << "\t" << setfill('-') << setw(31) << "-" << endl;
+	
+	// Obtain one single character from user
+	cin >> option;
+
+	return option;
+}
+
 // Instantiate mycourse object and save to the array
 // Input int number of courses taken
 void SaveCourses(int number_of_courses) {
@@ -196,16 +233,19 @@ void FindEmptyIndex(string name, string grades, int credits, string term) {
 }
 
 // Print out a list of all of the courses with their attributes in the file
-void PrintSummary() {
-	string split_arr[4];
-	std::ifstream my_file("CourseFile");
-	string file_line;
-
+void PrintSummary(char summary_type) {
+	//string split_arr[4];
+	//std::ifstream my_file("CourseFile");
+	//string file_line;
 	// load course information from file to array
+	FileToArray();
+	/*
 	while (getline(my_file, file_line)) {
 		SplitWords(split_arr, file_line, '/');		
 		FindEmptyIndex(split_arr[0], split_arr[1], std::stoi(split_arr[2]), split_arr[3]);
 	}
+	*/
+	Sort(course_list, summary_type);
 	
 	// load array to summary
 	for (MyCourse course : course_list) { 
@@ -217,7 +257,6 @@ void PrintSummary() {
 			break;
 		}
 	}	
-	my_file.close();
 }
 
 // Save assignment object to array
@@ -249,7 +288,6 @@ void SaveAssignments(int number_of_assignments) {
 	}
 }
 
-// TODO: check if there courses are already in the list by checking the names
 void SaveToFile() {
 	char to_save;
 	cout << "Would you like to save [y/n] ";
@@ -293,7 +331,6 @@ bool IsCourseExist(string course_name) {
 			my_file.close();
 			return 1;
 		}
-		cout << "course in file: " << file_line.substr(0, char_index) << endl;
 	}
 	return 0;
 }
@@ -383,46 +420,52 @@ float ConvertToGradePoints(string letter_grade) {
 // to biggest number. Input int type array,
 // int type beginning of the array, int type
 // mid position of the array and int type end
-// of the array
-void Merge(int array[], int begin, int mid, int end) {
+// of the array and char type gpa or credits
+void Merge(MyCourse array[], int begin, int mid, int end, char type) {
 	// size of the two subarrays
-	int subarray_left = mid - begin + 1;
-	int subarray_right = end - mid;
+	int subarray_size_left = mid - begin + 1;
+	int subarray_size_right = end - mid;
 
 	// create temporary vectors to copy array contents
-	std::vector<int> array_left(subarray_left), array_right(subarray_right);
+	std::vector<MyCourse> array_left(subarray_size_left), array_right(subarray_size_right);
 
 	// copy array contents
-	for (int i = 0; i < subarray_left; i++) {
+	for (int i = 0; i < subarray_size_left; i++) {
 		array_left[i] = array[begin + i];
 	}
-	for (int i = 0; i < subarray_right; i++) {
+	for (int i = 0; i < subarray_size_right; i++) {
 		array_right[i] = array[mid + 1+ i];
 	}
 
 	int i_left = 0, i_right = 0; // index for subarray left and subarray right
-	int i_array = 0;	     // index for array
-	
+	int i_array = begin;	     // index for array
+
 	// compare and sort from least to greatest
-	while (i_left < subarray_left && i_right < subarray_right) {
-		if (array_left[i_left] <= array_right[i_right]) {
-			array[i_array] = array_left[i_left];
-			i_left++;	
-		} else {
-			array[i_array] = array_right[i_right];
-			i_right++;
+	// need to know if sorting gpa, name or credits
+	//(MyCourse array[], std::vector<MyCourse> array_left, std::vector<MyCourse> array_right, Any value_left, Any value_right, int& i_left, int& i_right, int& i_array)
+	if (type == 'z') { // gpa
+		while (i_left < subarray_size_left && i_right < subarray_size_right) {
+			CompareMerge<string>(array, array_left, array_right, array_left[i_left].get_grade(), array_right[i_right].get_grade(), i_left, i_right, i_array);	
 		}
-		i_array++;
+	} else if (type == 'x') { // name
+		while (i_left < subarray_size_left && i_right < subarray_size_right) {
+			CompareMerge<string>(array, array_left, array_right, array_left[i_left].get_name(), array_right[i_right].get_name(), i_left, i_right, i_array);	
+		}
+	} else if (type == 'c') { // credits
+		while (i_left < subarray_size_left && i_right < subarray_size_right) {
+			CompareMerge<int>(array, array_left, array_right, array_left[i_left].get_credits(), array_right[i_right].get_credits(), i_left, i_right, i_array);
+		}
 	}
+	
 
 	// sort any left overs
-	while (i_left < subarray_left) {
+	while (i_left < subarray_size_left) {
 		array[i_array] = array_left[i_left];
 		i_left++;
 		i_array++;
 	}
 
-	while (i_right < subarray_right) {
+	while (i_right < subarray_size_right) {
 		array[i_array] = array_right[i_right];
 		i_right++;
 		i_array++;
@@ -431,16 +474,41 @@ void Merge(int array[], int begin, int mid, int end) {
 
 // Merge sorting algorithm input int type array
 // int type beginning of the array and int type
-// end of the array
-void MergeSort(int array[], int begin, int end) {
+// end of the array and char type 'g' for gpa
+// 'c' for credits
+void MergeSort(MyCourse array[], int begin, int end, char type) {
 	// return if no more array to split
 	if (begin >= end) {
 		return;
 	}
 	// find the middle position of the array
 	int mid = begin + (end - begin) / 2;
-	MergeSort(array, begin, mid); // left portion
-	MergeSort(array, mid+1, end); // right portion
+	MergeSort(array, begin, mid, type); // left portion
+	MergeSort(array, mid+1, end, type); // right portion
 	
-	Merge(array, begin, mid, end); // merge left and right arrays together
+	Merge(array, begin, mid, end, type); // merge left and right arrays together
+}
+
+void FileToArray() {
+	string split_arr[4];
+	string file_line;
+	std::ifstream my_file("CourseFile");
+
+	while (getline(my_file, file_line)) {
+		SplitWords(split_arr, file_line, '/');		
+		FindEmptyIndex(split_arr[0], split_arr[1], std::stoi(split_arr[2]), split_arr[3]);
+	}
+	my_file.close();
+}
+
+// sort from least to greatest
+void Sort(MyCourse array[], char type) {
+	
+	// to find where end is
+	int end = 0;
+	while (array[end].get_name() != "null") {
+		end++;
+	}
+	// merge sort array
+	MergeSort(array, 0, end-1, type);
 }
