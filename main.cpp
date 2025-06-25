@@ -1,18 +1,15 @@
-// TODO: ask user to save course info to a file
 // TODO: sort the course info interms of term year (fall 2024 - winter 2025 etc.) also highest to lowest gpa 
-// TODO: add 'summary' section
-// TODO: read summary from file
-// TODO: use do-while loop and exit only when user wants to exit (enter 'e')
 // TODO: add sortAlphabetical() method
 // TODO: add sortGpa() method
 // TODO: add sortCredit() method
-// TODO: add findCourse(string name) method and print a summary information about that course
 #include "mycourse.h"
 
 #include <iostream>
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
+#include <vector>
 
 using std::cout;
 using std::cin;
@@ -27,6 +24,10 @@ void SplitWords(string array[], string sentence, char symbol);
 float CalculateGpa(MyCourse list[]);
 float ConvertToGradePoints(string letter_grade);
 void SaveAssignments(int number_of_assignments);
+void SaveToFile();
+void PrintSummary();
+void FindEmptyIndex(string name, string grades, int credits, string term);
+bool IsCourseExist(string course_name);
 
 // storing name, grade, credits and term information
 MyCourse course;
@@ -49,6 +50,9 @@ Assignment graded_assignments;
 // dynamic array since I don't know how many assignments there are for any course
 Assignment * assignment_list;
 
+// for storing founded course;
+MyCourse find_course;
+
 int main() {
 	int N_courses; 
 	string course_name;
@@ -60,48 +64,78 @@ int main() {
 	int N_assignments;
 	int final_weighting;
 	int target_grade;
+	char choice;
 	
-	char choice = PromptOptions();
+	do {
+		choice = PromptOptions();
 
-	if (choice == 'z') {
-		cout << "Enter number of courses: "; 
-		cin >> N_courses;
+		if (choice == 'z') {
+			cout << "Enter number of courses: "; 
+			cin >> N_courses;
 		
-		cout << setfill('/') << setw(31) << "/" << endl;
-		cout << "\nEnter in the format:(name/grade/credits/term)\n" <<
-			"(i.e. chem 120/A/4/Winter 2025)" << endl;
-		cout << setfill('-') << setw(31) << "-" << endl;
-		SaveCourses(N_courses);
+			cout << setfill('/') << setw(31) << "/" << endl;
+			cout << "\nEnter in the format:(name/grade/credits/term)\n" <<
+				"(i.e. chem 120/A/4/Winter 2025)" << endl;
+			cout << setfill('-') << setw(31) << "-" << endl;
+			SaveCourses(N_courses);
 		
-		// output gpa with 2 decimal places precision with no roundings
-		// with total credits 
-		cout << "\n" << std::setprecision(3) << "Your gpa is:\t" << CalculateGpa(course_list) << endl;
-		cout << setfill('/') << setw(31) << "/" << endl;
-	} else if (choice == 'x') {
-		cout << "Enter number of graded assignments (midterm, lab, quiz...etc. EXCLUDE FINAL): ";
-		cin >> N_assignments; 
-		assignment_list = new Assignment[N_assignments]{placeholder}; // allocate new memory
+			// output gpa with 2 decimal places precision with no roundings
+			// with total credits 
+			cout << "\n" << std::setprecision(3) << "Your gpa is:\t" << CalculateGpa(course_list) << endl;
+			cout << setfill('/') << setw(31) << "/" << endl;
 
-		cout << setfill('/') << setw(31) << "/" << endl;
-		cout << "\nEnter in the format (assignment/grade percentage/weighting)\n" <<
-			"(i.e. midterm 1/85/15)"<< endl;
-		cout << setfill('-') << setw(31) << "-" << endl;
-		SaveAssignments(N_assignments);	
+			SaveToFile();
+		} else if (choice == 'x') {
+			cout << "Enter number of graded assignments (midterm, lab, quiz...etc. EXCLUDE FINAL): ";
+			cin >> N_assignments; 
+			assignment_list = new Assignment[N_assignments]{placeholder}; // allocate new memory
 
-		cout << setfill('-') << setw(31) << "-" << endl;
-		cout << "\nEnter final exam weighting: ";
-		cin >> final_weighting;
+			cout << setfill('/') << setw(31) << "/" << endl;
+			cout << "\nEnter in the format (assignment/grade percentage/weighting)\n" <<
+				"(i.e. midterm 1/85/15)"<< endl;
+			cout << setfill('-') << setw(31) << "-" << endl;
+			SaveAssignments(N_assignments);	
 
-		cout << "\nEnter grade you want to achieve in this course: ";
-		cin >> target_grade;
+			cout << setfill('-') << setw(31) << "-" << endl;
+			cout << "\nEnter final exam weighting: ";
+			cin >> final_weighting;
 
-		cout << "\n" << std::setprecision(4) << "Your target grade:\t" << target_grade <<
-			"\nRequire:\t\t" << CalculateGrade(assignment_list, N_assignments, target_grade, final_weighting) << 
-			" on the final exam.\n\n" << "GOOD LUCK!" << endl;
-		cout << setfill('/') << setw(31) << "/" << endl;
+			cout << "\nEnter grade you want to achieve in this course: ";
+			cin >> target_grade;
 
-		delete[] assignment_list; // free memory
-	}
+			cout << "\n" << std::setprecision(4) << "Your target grade:\t" << target_grade <<
+				"\nRequire:\t\t" << CalculateGrade(assignment_list, N_assignments, target_grade, final_weighting) << 
+				" on the final exam.\n\n" << "GOOD LUCK!" << endl;
+			cout << setfill('/') << setw(31) << "/" << endl;
+
+			delete[] assignment_list; // free memory
+		} else if (choice == 'c') {
+			cout << setfill('/') << setw(31) << "/\n" << endl;
+			PrintSummary();
+			cout << setfill('/') << setw(31) << "/\n" << endl;
+			cout << "\n * Done *" << endl;
+		} else if (choice == 'a') {
+			string course_name;
+			cout << "Enter course name: ";
+			getline(cin >> std::ws, course_name);	
+
+			cout << setfill('/') << setw(31) << "/\n" << endl;
+			if (IsCourseExist(course_name)) {
+				cout << "Course: " << find_course.get_name() << "\nFinal Grade: " << 
+					find_course.get_grade() << "\nCredits: " << find_course.get_credits() << 
+					"\nTerm Taken: " << find_course.get_term() << endl;	
+			} else {
+				cout << "* Course Not Found x_x *\n" << endl;
+			}	
+			cout << setfill('/') << setw(31) << "/\n" << endl;
+			cout << "\n * Done *" << endl;
+		} else if (choice == 'e') {
+			cout << "\nSee you." << endl;
+		} else {
+			cout << "Invalid Input." << endl;
+		}
+	} while (choice != 'e');
+
 	return 0;
 }
 
@@ -118,7 +152,8 @@ char PromptOptions() {
 
 	cout << "\t|\tCHOOSE AN OPTION" << setfill(' ') << setw(9) << "|\t\n" <<
 		"\t|" << setw(30) << "|" <<
-		"\n\t|\tGPA [z]\tGRADE[x]" << setw(8) << "|\n" <<
+		"\n\t| GPA [z] GRADE[x] SUMMARY[c]" << " |\n" <<
+		"\t|" << setw(10) << "\tFind Course [a]" << setw(9) << "|\n"<< 
 		"\t|" << setw(31) << "|\n" <<
 		"\t|" << setw(28) << "EXIT [e]" << " |" << endl;
 
@@ -142,11 +177,15 @@ void SaveCourses(int number_of_courses) {
 	for (int n = 0; n < number_of_courses; n++) {
 		cout << "Course " << n+1 << ": ";
 		getline(cin >> std::ws, course_info); 
-		
-		SplitWords(split_arr, course_info, '/');
 
-		// save to to an empty spot in course array
-		course = MyCourse(split_arr[0], split_arr[1], std::stoi(split_arr[2]), split_arr[3]); // name, grades, credits, term
+		SplitWords(split_arr, course_info, '/');
+		FindEmptyIndex(split_arr[0], split_arr[1], std::stoi(split_arr[2]), split_arr[3]);
+	}
+}
+
+// put course information into an array
+void FindEmptyIndex(string name, string grades, int credits, string term) {
+	course = MyCourse(name, grades, credits, term); // name, grades, credits, term
 		for (int i = 0; i < 40; i++) {
 			if (course_list[i].get_name() == "null") 
 			{
@@ -154,7 +193,31 @@ void SaveCourses(int number_of_courses) {
 				break;
 			}
 		}
+}
+
+// Print out a list of all of the courses with their attributes in the file
+void PrintSummary() {
+	string split_arr[4];
+	std::ifstream my_file("CourseFile");
+	string file_line;
+
+	// load course information from file to array
+	while (getline(my_file, file_line)) {
+		SplitWords(split_arr, file_line, '/');		
+		FindEmptyIndex(split_arr[0], split_arr[1], std::stoi(split_arr[2]), split_arr[3]);
 	}
+	
+	// load array to summary
+	for (MyCourse course : course_list) { 
+		if (course.get_name() != "null") {
+			cout << "Course: " << course.get_name() << "\nFinal Grade: " << course.get_grade() <<
+				"\nCredits: " << course.get_credits() << "\nTerm Taken: " << course.get_term() << endl;
+			cout << setfill('-') << setw(31) << "-\n" << endl;
+		} else {
+			break;
+		}
+	}	
+	my_file.close();
 }
 
 // Save assignment object to array
@@ -184,6 +247,55 @@ void SaveAssignments(int number_of_assignments) {
 			}
 		}
 	}
+}
+
+// TODO: check if there courses are already in the list by checking the names
+void SaveToFile() {
+	char to_save;
+	cout << "Would you like to save [y/n] ";
+	cin >> to_save;
+
+	if (to_save == 'y') {
+		std::ofstream my_file;
+		my_file.open("CourseFile", std::ios::app);
+
+		for (MyCourse course : course_list) {
+			// add course to file but avoid repetitive ones
+			if (course.get_name() != "null" && !IsCourseExist(course.get_name())) {
+				my_file << course.get_name() << "/" << 
+					course.get_grade() << "/" << course.get_credits() << 
+					"/" << course.get_term() << endl;
+			} else {
+				break;
+			}	
+		}
+		my_file.close();
+
+		cout << "* Saved! *\n\n" << endl;
+	} else if (to_save == 'n') {
+		cout << "\n* Note: It is not saved! *\n" << endl;
+	} else {
+		cout << "Invalid Input." << endl;
+	}
+}
+
+// check if course is already in the file based on the name
+bool IsCourseExist(string course_name) {
+	std::ifstream my_file("CourseFile");
+	string file_line;
+	int char_index;
+	string split_arr[4];
+	while (getline(my_file, file_line)) {
+		char_index = file_line.find("/");
+		if (file_line.substr(0, char_index) == course_name) {
+			SplitWords(split_arr, file_line, '/');	
+			find_course = MyCourse(split_arr[0], split_arr[1], std::stoi(split_arr[2]), split_arr[3]);
+			my_file.close();
+			return 1;
+		}
+		cout << "course in file: " << file_line.substr(0, char_index) << endl;
+	}
+	return 0;
 }
 
 // split strings with symbol char
@@ -265,4 +377,70 @@ float ConvertToGradePoints(string letter_grade) {
 		return 1.0;
 	}
 	return 0.0;
+}
+
+// merge two arrays into one array from smallest
+// to biggest number. Input int type array,
+// int type beginning of the array, int type
+// mid position of the array and int type end
+// of the array
+void Merge(int array[], int begin, int mid, int end) {
+	// size of the two subarrays
+	int subarray_left = mid - begin + 1;
+	int subarray_right = end - mid;
+
+	// create temporary vectors to copy array contents
+	std::vector<int> array_left(subarray_left), array_right(subarray_right);
+
+	// copy array contents
+	for (int i = 0; i < subarray_left; i++) {
+		array_left[i] = array[begin + i];
+	}
+	for (int i = 0; i < subarray_right; i++) {
+		array_right[i] = array[mid + 1+ i];
+	}
+
+	int i_left = 0, i_right = 0; // index for subarray left and subarray right
+	int i_array = 0;	     // index for array
+	
+	// compare and sort from least to greatest
+	while (i_left < subarray_left && i_right < subarray_right) {
+		if (array_left[i_left] <= array_right[i_right]) {
+			array[i_array] = array_left[i_left];
+			i_left++;	
+		} else {
+			array[i_array] = array_right[i_right];
+			i_right++;
+		}
+		i_array++;
+	}
+
+	// sort any left overs
+	while (i_left < subarray_left) {
+		array[i_array] = array_left[i_left];
+		i_left++;
+		i_array++;
+	}
+
+	while (i_right < subarray_right) {
+		array[i_array] = array_right[i_right];
+		i_right++;
+		i_array++;
+	}
+}
+
+// Merge sorting algorithm input int type array
+// int type beginning of the array and int type
+// end of the array
+void MergeSort(int array[], int begin, int end) {
+	// return if no more array to split
+	if (begin >= end) {
+		return;
+	}
+	// find the middle position of the array
+	int mid = begin + (end - begin) / 2;
+	MergeSort(array, begin, mid); // left portion
+	MergeSort(array, mid+1, end); // right portion
+	
+	Merge(array, begin, mid, end); // merge left and right arrays together
 }
