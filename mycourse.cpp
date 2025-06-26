@@ -2,57 +2,57 @@
 
 // constructors
 MyCourse::MyCourse() {
-	c_name = "null";
-	c_grade = "null";
-	c_credits = 0;
-	c_term = "null";
+  course_name_ = "null";
+  course_final_grade_ = "null";
+  course_credits_ = 0;
+  course_term_ = "null";
 }
 
 MyCourse::MyCourse(string name, string grade, int credits, string term) {
-	c_name = name;
-	c_grade = grade;
-	c_credits = credits;
-	c_term = term;
+  course_name_ = name;
+  course_final_grade_ = grade;
+  course_credits_ = credits;
+  course_term_ = term;
 }
 
 MyCourse::MyCourse(string name, string grade, int credits) {
-	c_name = name;
-	c_grade = grade;
-	c_credits = credits;
-	c_term = "null";
+  course_name_ = name;
+  course_final_grade_ = grade;
+  course_credits_ = credits;
+  course_term_ = "null";
 }
 
 // setters
+int MyCourse::get_credits() {
+  return course_credits_;
+}
+
 string MyCourse::get_name() {
-	return c_name;
+  return course_name_;
 }
 
 string MyCourse::get_grade() {
-	return c_grade;
-}
-
-int MyCourse::get_credits() {
-	return c_credits;
+  return course_final_grade_;
 }
 
 string MyCourse::get_term() {
-	return c_term;
+  return course_term_;
 }
 
 // getters
 void MyCourse::set_name(string name) {
-	c_name = name;
+  course_name_ = name;
 }
 
 void MyCourse::set_grade(string grade) {
-	c_grade = grade;
+  course_final_grade_ = grade;
 }
 
 void MyCourse::set_credits(int credits) {
-	c_credits = credits;
+  course_credits_ = credits;
 }
 
 void MyCourse::set_term(string term) {
-	c_term = term;
+  course_term_ = term;
 }
 
