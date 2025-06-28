@@ -54,7 +54,7 @@ There are 4 options when displaying the summary list from the file. You can disp
 
 Default value is set to be `sort by gpa` if you input any other character.
 
-> [!WARN]
+> [!WARNING]
 > This can be easily broken if the save file is not formatted correctly. Since all of the options are name sensitive
 
 # Conclusion
