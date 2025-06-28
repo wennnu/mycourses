@@ -42,7 +42,7 @@ template <typename Any>
 void CompareMerge(MyCourse array_to_sort[], std::vector<MyCourse> array_left,
 		              std::vector<MyCourse> array_right, Any value_left, 
 		              Any value_right, int& i_left, int& i_right, int& i_array) {
-  if (value_left <= value_right) {
+  if (value_left >= value_right) {
     array_to_sort[i_array] = array_left[i_left];
     i_left++;	
   } else {
@@ -457,13 +457,14 @@ void SaveToFile() {
 // Iterate through the course list with the same year
 // sort the list by the season Summer > Fall > WInter
 void SelectionSort(MyCourse list[], int start, int end) {
-  std::map<string, int> season_map = {{"Summer", 0}, {"Fall", 1}, {"Winter", 2}};
-  string ini_season = course_list[start].get_season();
-  int min_value = season_map.at(ini_season);
+  std::map<string, int> season_map = {{"Winter", 0}, {"Fall", 1}, {"Summer", 2}};
 
+  int min_position = start; // index with the lowest value
   while (start < end) {
+    string ini_season = course_list[start].get_season();
+    int min_value = season_map.at(ini_season);
+
     int j = start+1;
-    int min_position = start; // index with the lowest value
     while (j < end) {
       string current_season = course_list[j].get_season();
       int current_season_value = season_map.at(current_season);
@@ -479,6 +480,7 @@ void SelectionSort(MyCourse list[], int start, int end) {
     MyCourse temp_course = course_list[start];
     course_list[start] = course_list[min_position];
     course_list[min_position] = temp_course; 
+    cout << endl;
     start++;
   }
 }
@@ -510,21 +512,14 @@ void SortByTerm(int size) {
     }
   }
 
-  for (auto key : year_index_map) {
-    cout << "second: " << key.second << endl;
-  }
-
   // Iterate through the year map and sort courses by the seasons
   // within the same year
-  for (int i_year = 0, size = year_index_map.size()-2; i_year <= size; i_year++) {
+  for (int i_year = 0, length = year_index_map.size()-2; i_year <= length; i_year++) {
     int year_before = distinct_year.at(i_year);
     int year_after = distinct_year.at(i_year+1);
 
     SelectionSort(course_list, year_index_map.at(year_before), year_index_map.at(year_after));
   } 
-
-  // include last index
-  SelectionSort(course_list, size-2, size);
 }
 
 // Iterate through an split_array that has a fixed size
