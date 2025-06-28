@@ -6,29 +6,33 @@
 
 using std::string;
 
+// Use MyCourse class when user enters
+// information about a course such as its
+// name, final grade, credits and term, when
+// the user took the course in
 class MyCourse {
   public:
-    // constructors
+  
     MyCourse();
     MyCourse(string name, string grade, int credits, string term);
     MyCourse(string name, string grade, int credits);
 
-    // Setters
     int get_credits();
-    string get_name();
+    int get_year();
     string get_grade();
+    string get_name();
+    string get_season();
     string get_term();
 
-    // Getters
-    void set_name(string name);
-    void set_grade(string grade);
     void set_credits(int credits);
+    void set_grade(string grade);
+    void set_name(string name);
     void set_term(string term);
-  protected:
-    string course_name_;
+
   private:
-    string course_final_grade_; // letter grade
     int course_credits_;
-    string course_term_;
+    string course_name_;
+    string course_final_grade_; // letter grade
+    string course_term_; // i.e. Fall 2025
 };
 #endif // MYCOURSE_H_

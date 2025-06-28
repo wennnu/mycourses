@@ -1,6 +1,5 @@
 #include "mycourse.h"
 
-// constructors
 MyCourse::MyCourse() {
   course_name_ = "null";
   course_final_grade_ = "null";
@@ -22,9 +21,13 @@ MyCourse::MyCourse(string name, string grade, int credits) {
   course_term_ = "null";
 }
 
-// setters
 int MyCourse::get_credits() {
   return course_credits_;
+}
+
+int MyCourse::get_year() {
+  int i_space = course_term_.find(' ');
+  return std::stoi(course_term_.substr(i_space+1, 4));
 }
 
 string MyCourse::get_name() {
@@ -35,21 +38,25 @@ string MyCourse::get_grade() {
   return course_final_grade_;
 }
 
+string MyCourse::get_season() {
+  int i_space = course_term_.find(' ');
+  return course_term_.substr(0, i_space);
+}
+
 string MyCourse::get_term() {
   return course_term_;
 }
 
-// getters
-void MyCourse::set_name(string name) {
-  course_name_ = name;
+void MyCourse::set_credits(int credits) {
+  course_credits_ = credits;
 }
 
 void MyCourse::set_grade(string grade) {
   course_final_grade_ = grade;
 }
 
-void MyCourse::set_credits(int credits) {
-  course_credits_ = credits;
+void MyCourse::set_name(string name) {
+  course_name_ = name;
 }
 
 void MyCourse::set_term(string term) {
